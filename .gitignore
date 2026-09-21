@@ -1,0 +1,23 @@
+# Local secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Build outputs and dependencies
+**/target/
+**/node_modules/
+**/dist/
+
+# IDE and OS files
+**/.idea/
+**/.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Local tooling metadata
+.github/modernize/
+
+# Logs
+*.log
+logs/
