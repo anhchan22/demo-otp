@@ -17,6 +17,7 @@ public enum ErrorCode {
     RESET_TOKEN_INVALID("AUTH-4013", HttpStatus.UNAUTHORIZED, "Reset token không hợp lệ"),
     RESET_TOKEN_EXPIRED("AUTH-4014", HttpStatus.UNAUTHORIZED, "Reset token đã hết hạn"),
     PASSWORD_CONFIRMATION_MISMATCH("VAL-4005", HttpStatus.BAD_REQUEST, "Mật khẩu xác nhận không khớp"),
+    PASSWORD_REUSE("VAL-4006", HttpStatus.BAD_REQUEST, "Mật khẩu mới không được trùng mật khẩu hiện tại"),
     OTP_INVALID("OTP-4001", HttpStatus.BAD_REQUEST, "Mã OTP không chính xác"),
     OTP_EXPIRED("OTP-4002", HttpStatus.BAD_REQUEST, "Mã OTP đã hết hạn"),
     OTP_ALREADY_USED("OTP-4003", HttpStatus.BAD_REQUEST, "Mã OTP đã được sử dụng"),

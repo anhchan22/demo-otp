@@ -142,6 +142,10 @@ public class AuthService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESET_TOKEN_INVALID));
 
         User user = otpLog.getUser();
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPasswordHash())) {
+            throw new BusinessException(ErrorCode.PASSWORD_REUSE);
+        }
+
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         otpLog.setStatus(OtpStatus.INVALIDATED);
