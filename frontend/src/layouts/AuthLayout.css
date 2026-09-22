@@ -62,18 +62,22 @@
   border-radius: var(--radius-sm);
   margin-bottom: var(--space-md);
   font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.45;
   text-align: center;
   animation: fadeIn var(--transition-base);
 }
 
 .auth-error {
-  background: var(--color-error, #fdeaea);
-  color: #c62828;
+  background: var(--color-error-bg, #fdeaea);
+  color: #8f1d1d;
+  border: 1px solid #f0b7b7;
 }
 
 .auth-notice {
-  background: var(--color-success, #e8f5e9);
-  color: #2e7d32;
+  background: #e7f6ee;
+  color: #155b38;
+  border: 1px solid #b9e3ca;
 }
 
 /* Form Styles Shared */

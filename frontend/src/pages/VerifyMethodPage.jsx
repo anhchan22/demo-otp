@@ -44,7 +44,12 @@ const VerifyMethodPage = () => {
     <AuthLayout title="Chọn phương thức xác thực" subtitle="Vui lòng chọn cách nhận mã OTP">
       <div className="channel-list">
         {(recovery.channels || []).map((item, index) => {
-          const sandboxLabel = item.sandbox ? ' · Sandbox' : '';
+          const channelDescription = [
+            item.destination,
+            item.sandbox ? 'Sandbox' : null,
+            !item.available && item.reason ? item.reason : null,
+          ].filter(Boolean).join(' · ');
+
           return (
             <button
               key={item.channel}
@@ -59,9 +64,7 @@ const VerifyMethodPage = () => {
               <div className="channel-info">
                 <span className="channel-label">{labelMap[item.channel] || item.channel}</span>
                 <span className="channel-dest">
-                  {item.destination || item.reason}
-                  {sandboxLabel}
-                  {!item.available && item.destination && ` · ${item.reason}`}
+                  {channelDescription || 'Kênh sẵn sàng kiểm tra'}
                 </span>
               </div>
               <svg className="channel-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
