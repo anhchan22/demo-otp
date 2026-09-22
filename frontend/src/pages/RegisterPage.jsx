@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AuthLayout from '../layouts/AuthLayout';
 import { useAuth } from '../context/AuthContext';
 import './RegisterPage.css';
 
 const RegisterPage = () => {
-  const { register, loading } = useAuth();
+  const { register, loading, clearMessages } = useAuth();
   const [formData, setFormData] = useState({
     fullName: '',
     username: '',
@@ -13,6 +13,10 @@ const RegisterPage = () => {
     phone: '',
     password: ''
   });
+
+  useEffect(() => {
+    clearMessages();
+  }, [clearMessages]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

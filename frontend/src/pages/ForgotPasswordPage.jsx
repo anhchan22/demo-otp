@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AuthLayout from '../layouts/AuthLayout';
 import { useAuth } from '../context/AuthContext';
 
 const ForgotPasswordPage = () => {
-  const { forgotPassword, loading } = useAuth();
+  const { forgotPassword, loading, clearMessages } = useAuth();
   const [identifier, setIdentifier] = useState('');
+
+  useEffect(() => {
+    clearMessages();
+  }, [clearMessages]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
