@@ -40,6 +40,15 @@ public class AuthController {
     @Value("${app.cookie-secure:false}")
     private boolean cookieSecure;
 
+    /**
+     * Local-only teaching switch. When enabled, reset-password demonstrates
+     * the backend authorization flaw that pairs with OTP response-code
+     * manipulation: a valid reset flow token is accepted without verified=true.
+     * Keep this disabled outside the demo environment.
+     */
+    @Value("${app.demo-vulnerable-otp:false}")
+    private boolean demoVulnerableOtp;
+
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<RegisterResponse>> register(
             @Valid @RequestBody RegisterRequest request) {
@@ -105,7 +114,8 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> resetPassword(
             @Valid @RequestBody ResetPasswordRequest request, HttpServletRequest httpRequest) {
         FlowTokenService.FlowClaims claims = flowTokenService.requireClaims(httpRequest);
-        if (claims.purpose() != OtpPurpose.RESET_PASSWORD || !claims.verified()) {
+        if (claims.purpose() != OtpPurpose.RESET_PASSWORD
+                || (!claims.verified() && !demoVulnerableOtp)) {
             throw new com.example.otpdemo.exception.BusinessException(
                     com.example.otpdemo.exception.ErrorCode.FLOW_INVALID);
         }

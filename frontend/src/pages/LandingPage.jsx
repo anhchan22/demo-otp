@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { useAuth } from '../context/AuthContext';
 import './LandingPage.css';
 
 // We import images as requested
@@ -35,6 +36,7 @@ const useIntersectionObserver = (options = {}) => {
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const animatedElements = useIntersectionObserver({ threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
   const setRef = (index) => (el) => {

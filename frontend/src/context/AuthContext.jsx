@@ -151,7 +151,11 @@ export const AuthProvider = ({ children }) => {
         method: 'POST',
         body: JSON.stringify({ challengeId: otpState.challengeId, otp }),
       });
-      if (result.purpose === 'RESET_PASSWORD') {
+      // The current flow purpose is retained for the local response-code
+      // manipulation demo when a tampered success response contains only an
+      // error payload and therefore has no `purpose` field.
+      const purpose = result.purpose || otpState.purpose;
+      if (purpose === 'RESET_PASSWORD') {
         setResetForm((prev) => ({ ...prev, ready: true }));
         navigate('/reset-password');
       } else {
