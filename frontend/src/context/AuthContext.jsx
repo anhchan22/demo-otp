@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 
 const AuthContext = createContext(null);
+const OTP_PREVIEW_TTL_SECONDS = 60;
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
@@ -117,7 +118,7 @@ export const AuthProvider = ({ children }) => {
       destination: selectedChannel?.destination || channel,
       purpose,
       cooldown: 0,
-      expires: 300,
+      expires: OTP_PREVIEW_TTL_SECONDS,
       sendPending: true,
     });
     setOtp('');
