@@ -222,6 +222,14 @@ public class OtpService {
     }
 
     private void validateCurrentStatus(OtpLog otpLog) {
+        // Keep the attempt limit authoritative even if an older/inconsistent row
+        // still has PENDING status after reaching the configured threshold.
+        if (otpLog.getAttemptCount() >= maxAttempts && otpLog.getStatus() == OtpStatus.PENDING) {
+            otpLog.setStatus(OtpStatus.BLOCKED);
+            otpLog.setInvalidatedAt(Instant.now());
+            otpLogRepository.save(otpLog);
+            throw new BusinessException(ErrorCode.OTP_BLOCKED);
+        }
         if (otpLog.getStatus() == OtpStatus.VERIFIED) {
             throw new BusinessException(ErrorCode.OTP_ALREADY_USED);
         }
