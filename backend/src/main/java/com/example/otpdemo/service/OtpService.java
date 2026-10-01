@@ -80,7 +80,8 @@ public class OtpService {
         validateRateLimit(userId, now);
         validateCooldown(userId, currentOtp.getPurpose(), now);
         invalidatePendingOtps(userId, currentOtp.getPurpose(), now);
-        SendOtpResponse response = createAndSend(currentOtp.getUser(), currentOtp.getPurpose(), currentOtp.getChannel(), now);
+        SendOtpResponse response = createAndSend(currentOtp.getUser(), currentOtp.getPurpose(), currentOtp.getChannel(),
+                now);
         LOGGER.info("otp.resent userId={} purpose={} channel={} challengeId={}",
                 userId, currentOtp.getPurpose(), currentOtp.getChannel(), response.getChallengeId());
         return response;
@@ -153,13 +154,14 @@ public class OtpService {
                 throw exception;
             }
             LOGGER.warn("[DEV ONLY] OTP provider failed; retaining challengeId={} for local verification. "
-                            + "purpose={} channel={} otp={} code={}",
+                    + "purpose={} channel={} otp={} code={}",
                     savedOtp.getChallengeId(), purpose, channel, rawOtp, exception.getErrorCode().getCode());
         }
         return SendOtpResponse.builder()
                 .challengeId(savedOtp.getChallengeId())
                 .channel(channel)
                 .destination(maskDestination(user, channel))
+                // .otp(rawOtp)
                 .expiresIn(otpTtlSeconds)
                 .resendAfter(resendCooldownSeconds)
                 .build();
@@ -190,7 +192,7 @@ public class OtpService {
 
     private void validateCooldown(Long userId, OtpPurpose purpose, Instant now) {
         otpLogRepository.findTopByUserIdAndPurposeAndStatusOrderByCreatedAtDesc(
-                        userId, purpose, OtpStatus.PENDING)
+                userId, purpose, OtpStatus.PENDING)
                 .ifPresent(latestOtp -> {
                     long elapsedSeconds = Duration.between(latestOtp.getCreatedAt(), now).getSeconds();
                     if (elapsedSeconds < resendCooldownSeconds) {

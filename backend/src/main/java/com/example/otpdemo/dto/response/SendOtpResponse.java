@@ -12,4 +12,5 @@ public class SendOtpResponse {
     private String destination;
     private long expiresIn;
     private long resendAfter;
+    // private String otp;
 }
