@@ -4,7 +4,7 @@
 
 Demo cho thấy kẻ tấn công có thể dùng Burp Suite sửa HTTP response của API xác thực OTP. Frontend tin rằng OTP hợp lệ khi nhận HTTP `200`, dù backend ban đầu trả lỗi vì OTP sai.
 
-Trong chế độ demo hiện tại, backend còn cố tình bỏ qua trạng thái `verified` ở bước đổi mật khẩu để minh họa tác động end-to-end: OTP sai vẫn có thể dẫn đến đổi mật khẩu và đăng nhập bằng mật khẩu mới.
+Khi bật `DEMO_VULNERABLE_OTP=true`, backend cố tình bỏ qua trạng thái `verified` ở bước đổi mật khẩu để minh họa tác động end-to-end: OTP sai vẫn có thể dẫn đến đổi mật khẩu và đăng nhập bằng mật khẩu mới.
 
 > Đây là cấu hình cố tình tạo lỗ hổng cho môi trường local. Không sử dụng chế độ này trong production.
 
@@ -12,7 +12,7 @@ Trong chế độ demo hiện tại, backend còn cố tình bỏ qua trạng th
 
 | Thành phần | Địa chỉ | Vai trò |
 |---|---|---|
-| Frontend | `http://localhost:5174` | Gửi request và xử lý kết quả OTP |
+| Frontend | `http://127.0.0.1:5174` | Gửi request và xử lý kết quả OTP |
 | Backend | `http://localhost:8080` | Xử lý OTP, flow token và đổi mật khẩu |
 | Burp Suite | `127.0.0.1:8081` | Chặn và sửa HTTP response |
 
@@ -22,7 +22,7 @@ Trong Burp Suite:
 
 1. Bật proxy listener `127.0.0.1:8081`.
 2. Mở Burp Browser.
-3. Đảm bảo Burp Browser truy cập được `http://localhost:5174`.
+3. Đảm bảo Burp Browser truy cập được `http://127.0.0.1:5174`.
 4. Trong `Proxy settings`, bật response interception rule:
 
    ```text
@@ -40,7 +40,7 @@ Trong Burp Suite:
 1. Mở:
 
    ```text
-   http://localhost:5174/forgot-password
+   http://127.0.0.1:5174/forgot-password
    ```
 
 2. Nhập username/email của tài khoản tồn tại.
@@ -150,6 +150,17 @@ Nếu chỉ có lỗi 1, frontend có thể hiển thị sai hoặc cho đi ti�
 
 ## 6. Khắc phục
 
+### 1.1.1. Giải pháp khắc phục
+
+Hệ thống cần chuyển toàn bộ quyết định bảo mật về phía backend:
+
+- Chỉ khi OTP đúng, backend mới chuyển challenge sang trạng thái `VERIFIED` và phát hành reset token/flow token ngắn hạn có `verified=true`.
+- Endpoint đặt lại mật khẩu phải kiểm tra token hợp lệ, đúng người dùng, đúng mục đích `RESET_PASSWORD`, chưa hết hạn và đã được xác minh. Response HTTP `200` hoặc trạng thái trên giao diện không thay thế được bước kiểm tra này.
+- Frontend chỉ chuyển khỏi màn nhập OTP khi response xác minh có `code: "SUCCESS"`, `verified: true` và `purpose` đúng với flow hiện tại; nếu thiếu dữ liệu hoặc body vẫn là lỗi, phải hiển thị lỗi ngay cả khi status bị sửa từ `400` thành `200`. Kiểm tra này giúp giao diện không đi sai luồng, nhưng không được coi là bằng chứng bảo mật vì response phía client có thể tiếp tục bị sửa.
+- Không sử dụng biến, route hoặc trạng thái frontend làm bằng chứng người dùng đã vượt qua OTP.
+- Sau khi đặt lại mật khẩu thành công, token và challenge liên quan phải được đánh dấu đã sử dụng hoặc vô hiệu hóa để chống phát lại. Backend phải từ chối mọi yêu cầu dùng lại.
+- Ghi audit log cho các lần nhập OTP sai, thao tác đặt lại mật khẩu và các lần từ chối do flow chưa được xác minh.
+
 ### Khắc phục frontend
 
 - Không coi HTTP `200` là bằng chứng OTP hợp lệ.
@@ -163,7 +174,7 @@ Ví dụ nguyên tắc xử lý:
 ```javascript
 const result = await api('/otp/verify', options)
 
-if (!result.success || result.verified !== true) {
+if (result.code !== 'SUCCESS' || result.verified !== true || result.purpose !== expectedPurpose) {
   throw new Error('OTP không hợp lệ')
 }
 ```

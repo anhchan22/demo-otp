@@ -63,7 +63,7 @@ app:
   flow-ttl-seconds: ${FLOW_TTL_SECONDS}
   cookie-secure: ${COOKIE_SECURE:false}
   # Deliberately vulnerable local demo mode. Never enable in production.
-  demo-vulnerable-otp: ${DEMO_VULNERABLE_OTP:true}
+  demo-vulnerable-otp: ${DEMO_VULNERABLE_OTP:false}
 
 esms:
   enabled: ${ESMS_ENABLED}
