@@ -80,14 +80,19 @@ public class OtpService {
         validateRateLimit(userId, now);
         validateCooldown(userId, currentOtp.getPurpose(), now);
         invalidatePendingOtps(userId, currentOtp.getPurpose(), now);
-        SendOtpResponse response = createAndSend(currentOtp.getUser(), currentOtp.getPurpose(), currentOtp.getChannel(), now);
+        SendOtpResponse response = createAndSend(currentOtp.getUser(), currentOtp.getPurpose(), currentOtp.getChannel(),
+                now);
         LOGGER.info("otp.resent userId={} purpose={} channel={} challengeId={}",
                 userId, currentOtp.getPurpose(), currentOtp.getChannel(), response.getChallengeId());
         return response;
     }
 
-    @Transactional
-    public VerifyOtpResponse verifyOtp(String challengeId, String rawOtp, Long userId, OtpPurpose purpose) {
+    @Transactional(noRollbackFor = BusinessException.class)
+    public VerifyOtpResponse verifyOtp(String challengeId, String rawOtp, Long userId, OtpPurpose purpose,
+            String clientIp) {
+        if (clientIp != null && !clientIp.isBlank()) {
+            otpRateLimiter.check("verify:" + clientIp);
+        }
         OtpLog otpLog = otpLogRepository.findByChallengeIdForUpdate(challengeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.OTP_NOT_FOUND));
         validateOwnership(otpLog, userId, purpose);
@@ -133,6 +138,10 @@ public class OtpService {
                 .build();
     }
 
+    public VerifyOtpResponse verifyOtp(String challengeId, String rawOtp, Long userId, OtpPurpose purpose) {
+        return verifyOtp(challengeId, rawOtp, userId, purpose, null);
+    }
+
     private SendOtpResponse createAndSend(User user, OtpPurpose purpose, OtpChannel channel, Instant now) {
         invalidatePendingOtps(user.getId(), purpose, now);
 
@@ -146,6 +155,11 @@ public class OtpService {
         otpLog.setExpiresAt(now.plusSeconds(otpTtlSeconds));
         OtpLog savedOtp = otpLogRepository.save(otpLog);
 
+        LOGGER.info("==================================================================");
+        LOGGER.info("🔑 [OTP PREVIEW] Kênh: {} | Mục đích: {} | User: {}", channel, purpose, user.getUsername());
+        LOGGER.info("👉 MÃ OTP LÀ: [{}] (challengeId={})", rawOtp, savedOtp.getChallengeId());
+        LOGGER.info("==================================================================");
+
         try {
             otpSender.send(user, rawOtp, purpose, channel);
         } catch (BusinessException exception) {
@@ -153,7 +167,7 @@ public class OtpService {
                 throw exception;
             }
             LOGGER.warn("[DEV ONLY] OTP provider failed; retaining challengeId={} for local verification. "
-                            + "purpose={} channel={} otp={} code={}",
+                    + "purpose={} channel={} otp={} code={}",
                     savedOtp.getChallengeId(), purpose, channel, rawOtp, exception.getErrorCode().getCode());
         }
         return SendOtpResponse.builder()
@@ -190,7 +204,7 @@ public class OtpService {
 
     private void validateCooldown(Long userId, OtpPurpose purpose, Instant now) {
         otpLogRepository.findTopByUserIdAndPurposeAndStatusOrderByCreatedAtDesc(
-                        userId, purpose, OtpStatus.PENDING)
+                userId, purpose, OtpStatus.PENDING)
                 .ifPresent(latestOtp -> {
                     long elapsedSeconds = Duration.between(latestOtp.getCreatedAt(), now).getSeconds();
                     if (elapsedSeconds < resendCooldownSeconds) {

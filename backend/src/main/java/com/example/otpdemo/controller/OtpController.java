@@ -47,7 +47,7 @@ public class OtpController {
             @Valid @RequestBody VerifyOtpRequest request, HttpServletRequest httpRequest) {
         FlowTokenService.FlowClaims claims = flowTokenService.requireClaims(httpRequest);
         VerifyOtpResponse response = otpService.verifyOtp(
-                request.getChallengeId(), request.getOtp(), claims.userId(), claims.purpose());
+                request.getChallengeId(), request.getOtp(), claims.userId(), claims.purpose(), httpRequest.getRemoteAddr());
         org.springframework.http.ResponseCookie cookie = claims.purpose() == OtpPurpose.RESET_PASSWORD
                 ? flowTokenService.buildCookie(flowTokenService.createToken(
                         claims.userId(), claims.purpose(), true))

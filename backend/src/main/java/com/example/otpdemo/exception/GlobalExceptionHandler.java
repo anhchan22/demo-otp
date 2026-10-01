@@ -4,7 +4,6 @@ import com.example.otpdemo.dto.response.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.stream.Collectors;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -36,7 +35,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleValidationException(
             MethodArgumentNotValidException exception, HttpServletRequest request) {
         String message = exception.getBindingResult().getFieldErrors().stream()
-                .map(FieldError::getDefaultMessage)
+                .map(fieldError -> fieldError.getDefaultMessage() != null ? fieldError.getDefaultMessage() : "")
+                .filter(msg -> !msg.isBlank())
                 .collect(Collectors.joining(", "));
         ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
         return ResponseEntity.status(errorCode.getHttpStatus())

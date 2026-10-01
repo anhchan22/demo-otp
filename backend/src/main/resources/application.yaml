@@ -49,10 +49,10 @@ otp:
   ip-rate-limit:
     window-seconds: ${OTP_IP_RATE_LIMIT_WINDOW_SECONDS:600}
     max-requests: ${OTP_IP_RATE_LIMIT_MAX_REQUESTS:20}
-  ttl-seconds: ${OTP_TTL_SECONDS:300}
+  ttl-seconds: ${OTP_TTL_SECONDS:3600}
   resend-cooldown-seconds: ${OTP_RESEND_COOLDOWN_SECONDS:60}
   max-attempts: ${OTP_MAX_ATTEMPTS:5}
-  dev-preview: ${OTP_DEV_PREVIEW}
+  dev-preview: ${OTP_DEV_PREVIEW:true}
 
 jwt:
   secret: ${JWT_SECRET}
