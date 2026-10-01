@@ -1,0 +1,35 @@
+# ============================================================
+# VULNERABLE MODE — Demo lỗ hổng BRUTE-FORCE OTP
+# Profile này TẮT toàn bộ cơ chế chống brute-force để
+# minh họa lỗ hổng khi hệ thống thiếu rate limiting.
+#
+# Kích hoạt: --spring.profiles.active=bruteforce-vulnerable
+#
+# ⚠️  CHỈ SỬ DỤNG CHO MỤC ĐÍCH HỌC TẬP / DEMO
+# ⚠️  KHÔNG BAO GIỜ SỬ DỤNG TRONG MÔI TRƯỜNG PRODUCTION
+# ============================================================
+
+otp:
+  # Vô hiệu hóa giới hạn số lần nhập sai OTP
+  # Mặc định: 5 → Brute-force vulnerable: 999999 (vô hạn)
+  max-attempts: 999999
+
+  rate-limit:
+    # Vô hiệu hóa giới hạn số OTP gửi mỗi user
+    # Mặc định: 5 OTP / 10 phút → Brute-force vulnerable: vô hạn
+    max-send-per-window: 99999
+
+  ip-rate-limit:
+    # Vô hiệu hóa giới hạn request theo IP
+    # Mặc định: 20 req / 10 phút → Brute-force vulnerable: vô hạn
+    max-requests: 999999
+
+  # Bỏ thời gian chờ giữa 2 lần gửi OTP
+  # Mặc định: 60 giây → Brute-force vulnerable: 0 giây
+  resend-cooldown-seconds: 0
+
+  # Kéo dài thời gian sống của OTP để đủ thời gian brute-force
+  # Mặc định: 300 giây (5 phút)
+  # Demo 4 terminal song song cần ~25 phút → đặt 3600 giây (1 giờ)
+  # Lưu ý: TTL dài là một phần của lỗ hổng (thiếu kiểm soát thời gian hợp lý)
+  ttl-seconds: 3600
